@@ -7,5 +7,3 @@ A tool for building python apps for distribution on macOS and Windows. Features 
 - Creating one-click installers for macOS and Windows distributions.
 - Deploying built projects and installers on the host machine to be downloaded later.
 - Embedding an auto-update service in the python app that will automatically query the host for the latest version of the app.
-
-
