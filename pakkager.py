@@ -86,7 +86,7 @@ Folder structure on the server
         unzipped/
 """
 
-def make_pakkage(product: Product, icon: str, password: str, app: str, pakked_resources: List[str]=None, unpakked_resources: List[str]=None, plist: Dict[str, str]=None) -> Release:
+def make_pakkage(product: Product, icon: str, password: str, app: str, packages: List[str]=None, pakked_resources: List[str]=None, unpakked_resources: List[str]=None, plist: Dict[str, str]=None) -> Release:
     key = hashlib.sha256(password.encode("utf-8")).digest()
 
     print("pakking")
@@ -111,6 +111,11 @@ def make_pakkage(product: Product, icon: str, password: str, app: str, pakked_re
     else:
         icon = ""
 
+    if packages:
+        packages = f"'packages': {str(packages)},"
+    else:
+        packages = ""
+
     # prepend autoupdate utility to startup app
     embedded = UPDATE_EMBED.replace("[%__pakk_server__%]", request.url_root)
     embedded = embedded.replace("[%__pakk_product__%]", product.identifier)
@@ -129,6 +134,7 @@ APP = ['{app}']
 DATA_FILES = []
 OPTIONS = {{
     {icon}
+    {packages}
     "resources": {json.dumps(unpakked_resources)},
     "plist": {json.dumps(plist)}
 }}
@@ -211,6 +217,7 @@ def index():
             name: <input type=textbox name=name> <br>
             password: <input type=textbox name=password> <br>
             app: <input type=textbox name=app> <br>
+            packages: <input type=textbox name=packages> <br>
             pakked: <input type=textbox name=pakked> <br>
             unpakked: <input type=textbox name=unpakked> <br>
             plist: <input type=textbox name=plist> <br>
@@ -300,6 +307,10 @@ def post_make_pakkage():
             return BadRequest(f"There is already a release of {product_identifier} with version {version}")
 
         app = os.path.join(unzipped_path, request.form["app"])
+        packages = []
+        if len(request.form["packages"].strip()) > 0:
+            packages = request.form["packages"].split(",")
+
         pakked = []
         if len(request.form["pakked"].strip()) > 0:
             pakked = [os.path.join(unzipped_path, x) for x in request.form["pakked"].split(",")]
@@ -312,7 +323,7 @@ def post_make_pakkage():
         if not os.path.isfile(icon):
             icon = None
         
-        release = make_pakkage(product, icon, request.form["password"], app, pakked, unpakked, plist)
+        release = make_pakkage(product, icon, request.form["password"], app, packages, pakked, unpakked, plist)
 
         releases = {
             "darwin": release.get_path("darwin").installer_path,
