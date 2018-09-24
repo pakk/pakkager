@@ -300,8 +300,14 @@ def post_make_pakkage():
             return BadRequest(f"There is already a release of {product_identifier} with version {version}")
 
         app = os.path.join(unzipped_path, request.form["app"])
-        pakked = [os.path.join(unzipped_path, x) for x in request.form.getlist("pakked")]
-        unpakked = [os.path.join(unzipped_path, x) for x in request.form.getlist("unpakked")]
+        pakked = []
+        if len(request.form["pakked"].strip()) > 0:
+            pakked = [os.path.join(unzipped_path, x) for x in request.form["pakked"].split(",")]
+
+        unpakked = []
+        if len(request.form["unpakked"].strip()) > 0:
+            unpakked = [os.path.join(unzipped_path, x) for x in request.form["unpakked"].split(",")]
+
         icon = os.path.join(unzipped_path, "pakkicon.icns")
         if not os.path.isfile(icon):
             icon = None
