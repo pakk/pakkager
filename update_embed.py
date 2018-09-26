@@ -17,10 +17,13 @@ def _pakk_cmp_version(left: str, right: str) -> int:
     return cmp(normalize(left), normalize(right))
 
 def _pakk_check_should_update() -> bool:
-    with _pakk_request.urlopen(f"[%__pakk_server__%]product/[%__pakk_product__%]/latest/version") as response:
-        # if our version is >= the latest version, then we dont need to update.
-        lversion = response.read().decode("utf-8")
-        return _pakk_cmp_version("[%__pakk_version__%]", lversion) < 0
+    try:
+        with _pakk_request.urlopen(f"[%__pakk_server__%]product/[%__pakk_product__%]/latest/version") as response:
+            # if our version is >= the latest version, then we dont need to update.
+            lversion = response.read().decode("utf-8")
+            return _pakk_cmp_version("[%__pakk_version__%]", lversion) < 0
+    except:
+        return False
 
 def _pakk_check_update():
     current_platform = _pakk_platform.system().lower()
@@ -33,7 +36,8 @@ def _pakk_check_update():
         temp_dir = _pakk_os.path.join(_pakk_os.environ["TMPDIR"], "com.pakk.pakk")
         temp_exec_dir = _pakk_os.path.join(temp_dir, "python")
         temp_exec = _pakk_os.path.join(temp_exec_dir, "python")
-        _pakk_shutil.rmtree(temp_dir)
+        if _pakk_os.path.isdir(temp_dir):
+            _pakk_shutil.rmtree(temp_dir)
         _pakk_os.makedirs(temp_exec_dir)
         _pakk_shutil.copy2(_pakk_sys.executable, temp_exec_dir)
         _pakk_shutil.copytree("../Frameworks", _pakk_os.path.join(temp_dir, "Frameworks"))
