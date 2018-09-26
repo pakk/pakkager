@@ -86,13 +86,13 @@ Folder structure on the server
         unzipped/
 """
 
-def make_pakkage(product: Product, icon: str, password: str, app: str, packages: List[str]=None, pakked_resources: List[str]=None, unpakked_resources: List[str]=None, plist: Dict[str, str]=None) -> Release:
+def make_pakkage(product: Product, icon: str, password: str, app: str, packages: List[str]=None, pakked_resources: List[str]=None, pakked_prefix: str=None, unpakked_resources: List[str]=None, plist: Dict[str, str]=None) -> Release:
     key = hashlib.sha256(password.encode("utf-8")).digest()
 
     print("pakking")
     # Create Pakk out of the resources requested to be pakked
     if len(pakked_resources) > 0:
-        pakk_files(key, pakked_resources, "./build/pakk.pakk")
+        pakk_files(key, pakked_resources, pakked_prefix, "./build/pakk.pakk")
 
     if not unpakked_resources:
         unpakked_resources = []
@@ -145,9 +145,7 @@ setup(
     data_files=DATA_FILES,
     options={{'py2app': OPTIONS}},
     setup_requires=['py2app'],
-    install_requires=[
-        "pycrypto"
-    ],
+    install_requires=['pycrypto']
 )
         """)
 
@@ -323,7 +321,10 @@ def post_make_pakkage():
         if not os.path.isfile(icon):
             icon = None
         
-        release = make_pakkage(product, icon, request.form["password"], app, packages, pakked, unpakked, plist)
+        if not unzipped_path.endswith("/"):
+            unzipped_path = unzipped_path + "/"
+
+        release = make_pakkage(product, icon, request.form["password"], app, packages, pakked, unzipped_path, unpakked, plist)
 
         releases = {
             "darwin": release.get_path("darwin").installer_path,
